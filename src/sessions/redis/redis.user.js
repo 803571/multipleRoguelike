@@ -32,6 +32,7 @@ const getRedisUsers = async () => {
     return null;
   }
 
+  // pipeline - 명령 묶어서 실행(최적화)
   const pipeline = redis.pipeline();
   userKeys.forEach((key) => pipeline.hgetall(key));
 
@@ -59,7 +60,7 @@ const getRedisUserById = async (id) => {
   return {
     id: user.id,
     nickname: user.nickname,
-    myClass: parseInt(user.myClass, 10),
+    myClass: parseInt(user.myClass),
     locationType: user.locationType,
   };
 };
