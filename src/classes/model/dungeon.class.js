@@ -1,3 +1,5 @@
+import { getStatsByUserId } from '../../sessions/redis/redis.user.js';
+
 class Dungeon {
   constructor(dungeonInfo, dungeonLevel) {
     this.dungeonId = dungeonInfo.dungeonId;
@@ -53,7 +55,7 @@ class Dungeon {
     });
   }
 
-  addDungeonUser(userSession) {
+  async addDungeonUser(userSession) {
     if (!userSession.socket.id) {
       throw new Error('유효하지 않은 유저 세션입니다.');
     }
@@ -68,7 +70,10 @@ class Dungeon {
       userId: userId,
       socket: userSession.socket,
       transform: { posX: 0, posY: 0, posZ: 0, rot: 0 }, // 던전 입장 시 초기 위치
+      stats: await getStatsByUserId(userId), // 클래스 별 초기 스탯
     };
+
+    console.table(dungeonUser.stats);
 
     this.users.set(userId, dungeonUser);
     return userSession;
@@ -98,9 +103,6 @@ class Dungeon {
       this.currentStage++;
     }
   }
-
-  // 스테이지 중 3개 할당해서 적용하기
-  getcurrentStages() {}
 }
 
 export default Dungeon;
