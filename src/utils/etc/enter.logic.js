@@ -47,6 +47,19 @@ const enterLogic = async (socket, user) => {
     const otherUsernotification = createNotificationPacket(PACKET_ID.S_Spawn, otherUserPayload);
     value.socket.write(otherUsernotification);
   }
+
+  for (const [key, value] of userSessions) {
+    console.log('key: ', key);
+  }
+
+  userSessions.forEach((u) => {
+    const chatPayload = {
+      playerId: user.id,
+      chatMsg: `${user.nickname}님이 게임에 입장하셨습니다!`,
+    };
+
+    u.socket.write(createResponse(PACKET_ID.S_Chat, chatPayload));
+  });
 };
 
 export default enterLogic;
