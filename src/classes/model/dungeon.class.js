@@ -1,4 +1,5 @@
 import { getStatsByUserId } from '../../sessions/redis/redis.user.js';
+import Monster from './monster.class.js';
 
 class Dungeon {
   constructor(dungeonInfo, dungeonLevel) {
@@ -7,7 +8,12 @@ class Dungeon {
     this.stages = this.getRandomStages(dungeonInfo.stages, 3);
     this.currentStage = 0;
     this.users = new Map();
+    this.monsters = new Map();
     this.dungeonLevel = dungeonLevel;
+  }
+
+  addDungeonMonster(monsterInfo) {
+    //const monster = new Monster();
   }
 
   getRandomStages(allStages, count) {
