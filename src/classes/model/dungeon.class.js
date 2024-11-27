@@ -55,6 +55,12 @@ class Dungeon {
     });
   }
 
+  nextStage() {
+    if (this.currentStage < this.stages.length - 1) {
+      this.currentStage++;
+    }
+  }
+
   async addDungeonUser(userSession) {
     if (!userSession.socket.id) {
       throw new Error('유효하지 않은 유저 세션입니다.');
@@ -92,16 +98,6 @@ class Dungeon {
 
   getAllDungeonUsers() {
     return Array.from(this.users.values());
-  }
-
-  getCurrentStage() {
-    return this.stages[this.currentStage];
-  }
-
-  nextStage() {
-    if (this.currentStage < this.stages.length - 1) {
-      this.currentStage++;
-    }
   }
 }
 
