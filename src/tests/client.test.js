@@ -14,7 +14,7 @@ class Client {
   token = '';
   #handlers = {};
 
-  constructor(host = 'localhost', port = 5555) {
+  constructor(host = 'localhost', port = 3000) {
     this.host = host;
     this.port = port;
     this.client = null;
