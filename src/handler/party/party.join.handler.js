@@ -1,6 +1,6 @@
 import { PACKET_ID } from '../../configs/constants/packetId.js';
 import handleError from '../../utils/error/errorHandler.js';
-import { getUserSessions } from '../../sessions/user.session.js';
+import { getUserSessions, getAllUserUUID } from '../../sessions/user.session.js';
 import createNotificationPacket from '../../utils/notification/createNotification.js';
 import { addRedisParty, joinRedisParty } from '../../sessions/redis/redis.party.js';
 
@@ -29,19 +29,17 @@ const partyJoinHandler = async (socket, payload) => {
       party = await joinRedisParty(roomId, socket.id);
     }
 
-    const userSessions = getUserSessions();
-
     const partyPayload = {
       playerId: parseInt(socket.id),
       roomId,
       dungeonLevel,
     };
 
-    const notification = createNotificationPacket(PACKET_ID.S_PartyJoin, partyPayload);
-
-    userSessions.forEach((session) => {
-      session.socket.write(notification);
-    });
+    const notification = createNotificationPacket(
+      PACKET_ID.S_PartyJoin,
+      partyPayload,
+      getAllUserUUID(),
+    );
   } catch (e) {
     handleError(socket, e);
   }

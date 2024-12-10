@@ -1,7 +1,7 @@
 import { PACKET_ID } from '../../configs/constants/packetId.js';
 import { getRedisPartyByUserId, removeRedisParty } from '../../sessions/redis/redis.party.js';
 import { removeRedisUser } from '../../sessions/redis/redis.user.js';
-import { getUserSessions, removeUserSession } from '../../sessions/user.session.js';
+import { getUserSessions, removeUserSession, getAllUserUUID } from '../../sessions/user.session.js';
 import logger from '../logger.js';
 import createNotificationPacket from '../notification/createNotification.js';
 
@@ -26,15 +26,7 @@ const despawnLogic = async (socket) => {
   }
 
   removeUserSession(socket);
-
-  const response = createNotificationPacket(PACKET_ID.S_Despawn, payload);
-
-  const sessions = getUserSessions();
-  if (sessions) {
-    for (const [key, value] of sessions) {
-      value.socket.write(response);
-    }
-  }
+  const response = createNotificationPacket(PACKET_ID.S_Despawn, payload, getAllUserUUID());
 };
 
 export default despawnLogic;

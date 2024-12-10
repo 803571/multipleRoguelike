@@ -3,9 +3,11 @@ import { PACKET_ID } from '../../configs/constants/packetId.js';
 import handleError from '../../utils/error/errorHandler.js';
 import { getGameAssets } from '../../init/loadAsset.js';
 import { getRedisUserById } from '../../sessions/redis/redis.user.js';
-import { getDungeonSession } from '../../sessions/dungeon.session.js';
+import { getDungeonSession, getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
 import levelUpNotification from '../game/levelUp.notification.js';
 import configs from '../../configs/configs.js';
+import createNotificationPacket from '../../utils/notification/createNotification.js';
+import { enqueueSend } from '../../utils/socket/messageQueue.js';
 
 const { ITEM_DROP_RATE, SKILL_DROP_RATE } = configs;
 
@@ -42,7 +44,7 @@ const MONSTER_EXP = 110; // 몬스터 처치 시 얻는 기본 경험치
 
 let itemInstanceId = 0;
 
-const monsterKillNotification = async (socket, payload) => {
+const monsterKillNotification = async (socket, redisUser, payload) => {
   try {
     const { monsterId, transform } = payload;
     const playerId = socket.id;
@@ -76,8 +78,6 @@ const monsterKillNotification = async (socket, payload) => {
       skillId,
       transform,
     };
-
-    const redisUser = await getRedisUserById(socket.id);
     const dungeon = getDungeonSession(redisUser.sessionId);
     const dungeonUser = dungeon.getDungeonUser(socket.id);
 
@@ -102,14 +102,12 @@ const monsterKillNotification = async (socket, payload) => {
       dungeonUser.statsInfo.exp = curExp - maxExp;
     }
 
-    const response = createResponse(PACKET_ID.S_MonsterKill, monsterKillPayload);
-    const allUsers = dungeon.getAllUsers();
-
-    allUsers.forEach((value) => {
-      value.socket.write(response);
-    });
-
-    socket.write(expResponse);
+    createNotificationPacket(
+      PACKET_ID.S_MonsterKill,
+      monsterKillPayload,
+      getDungeonUsersUUID(redisUser.sessionId),
+    );
+    enqueueSend(socket.UUID, expResponse);
   } catch (e) {
     handleError(socket, e);
   }
