@@ -8,7 +8,7 @@ import { addUserQueue } from '../utils/socket/messageQueue.js';
 const onConnection = (socket) => {
   socket.UUID = uuidV4();
   logger.info(
-    `클라이언트가 연결되었습니다 [${socket.remoteAddress}:${socket.remotePort}] ${socket.uuid}`,
+    `클라이언트가 연결되었습니다 [${socket.remoteAddress}:${socket.remotePort}] ${socket.UUID}`,
   );
   // 소켓 객체에 buffer 속성을 추가하여 각 클라이언트에 고유한 버퍼를 유지\
   addUserQueue(socket);

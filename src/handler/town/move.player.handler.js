@@ -3,6 +3,7 @@ import { getRedisUserById } from '../../sessions/redis/redis.user.js';
 import createResponse from '../../utils/packet/createResponse.js';
 import { getUserSessions, updateUserTransformById } from '../../sessions/user.session.js';
 import logger from '../../utils/logger.js';
+import Result from '../result.js';
 /**
  * 무브 핸들러
  * @param {object} socket - 클라이언트 소켓
@@ -24,7 +25,6 @@ const movePlayerHandler = async (socket, payload) => {
     const moveResponsePayload = createResponse(PACKET_ID.S_Move, movePayload);
 
     const allUsers = getUserSessions();
-
     // 로케이션 타입 확인 후 같은 로케이션의 유저들에게 패킷 전송
     allUsers.forEach((value, targetUserId) => {
       if (targetUserId !== user.id) {
