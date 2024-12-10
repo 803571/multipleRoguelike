@@ -25,6 +25,11 @@ const addDungeonSession = (sessionId, dungeonLevel) => {
   return dungeon;
 };
 
+const getDungeonUsersUUID = (dungeonId) => {
+  const session = getDungeonSession(dungeonId);
+  return session.getAllUsers().array.forEach((user) => user.socket.UUID);
+};
+
 const getDungeonSession = (dungeonId) => {
   const session = dungeonSessions.get(dungeonId);
   if (!session) {
@@ -46,4 +51,10 @@ const getDungeonSessions = () => {
   return dungeonSessions;
 };
 
-export { addDungeonSession, getDungeonSession, removeDungeonSession, getDungeonSessions };
+export {
+  addDungeonSession,
+  getDungeonSession,
+  removeDungeonSession,
+  getDungeonSessions,
+  getDungeonUsersUUID,
+};
