@@ -17,5 +17,4 @@ const initServer = async () => {
   }
 };
 
-await initServer();
 export default initServer;
