@@ -40,8 +40,12 @@ class User {
     this.transform = { posX, posY, posZ, rot };
   }
 
-  updateUserTransform(posX, posY, posZ, rot) {
-    this.transform = { posX, posY, posZ, rot };
+  incrementMonsterKillCount() {
+    this.monsterKillCount++;
+  }
+
+  incrementUserKillCount() {
+    this.userKillCount++;
   }
 
   incrementMonsterKillCount() {
