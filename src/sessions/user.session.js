@@ -30,6 +30,10 @@ const getUserSessions = () => {
   return userSessions;
 };
 
+const getAllUserUUID = () => {
+  return Array.from(userSessions.values()).map((user) => user.socket.UUID);
+};
+
 const getUserSessionById = (id) => {
   const userId = id.toString();
 
@@ -70,4 +74,5 @@ export {
   getUserSessionById,
   getUserTransformById,
   updateUserTransformById,
+  getAllUserUUID,
 };
