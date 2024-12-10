@@ -47,14 +47,6 @@ class User {
   incrementUserKillCount() {
     this.userKillCount++;
   }
-
-  incrementMonsterKillCount() {
-    this.monsterKillCount++;
-  }
-
-  incrementUserKillCount() {
-    this.userKillCount++;
-  }
 }
 
 export default User;
