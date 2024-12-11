@@ -6,7 +6,7 @@ import { getDungeonSession } from '../../sessions/dungeon.session.js';
 import Result from '../result.js';
 import createNotificationPacket from '../../utils/notification/createNotification.js';
 
-const updateMonsterHpNotification = (monsterId, currentHp, targetUUIDs = []) => {
+const updateMonsterHpNotification = async (monsterId, currentHp, targetUUIDs = []) => {
   createNotificationPacket(PACKET_ID.S_UpdateMonsterHp, { monsterId, hp: currentHp }, targetUUIDs);
 };
 export default updateMonsterHpNotification;
