@@ -35,6 +35,11 @@ message S_AttackedNexus {
   int32 playerId = 1;  // 공격 유저ID
   int32 damage = 2;    // 데미지
 }
+message S_NexusSpawn {
+  int32 nexusId = 1; //확장성 & 넥서스 특정하기
+  int32 hp = 1;
+  transformInfo transform = 2;
+}
 
 // HP 변화 등 status 변할 때 알림
 message S_PlayerStatus {

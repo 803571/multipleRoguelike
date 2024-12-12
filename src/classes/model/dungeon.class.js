@@ -2,6 +2,7 @@ import { getStatsByUserId } from '../../sessions/redis/redis.user.js';
 import MonsterLogic from './monsterLogic.class.js';
 import logger from '../../utils/logger.js';
 import { removeDungeonSession } from '../../sessions/dungeon.session.js';
+import NexusLogic from './nexusLogic.js';
 
 class Dungeon {
   constructor(dungeonInfo) {
@@ -10,9 +11,7 @@ class Dungeon {
     this.users = new Map();
     this.usersUUID = [];
     this.monsterLogic = new MonsterLogic(this);
-
-    this.nexusCurrentHp = 100;
-    this.nexusMaxHp = 100;
+    this.nexusLogic = new NexusLogic(this);
   }
 
   async addDungeonUser(user) {
@@ -215,8 +214,14 @@ class Dungeon {
   }
 
   nexusDamaged(damage) {
-    this.nexusCurrentHp -= damage;
-    return this.nexusCurrentHp;
+    const nexusHp = this.nexusLogic.nexus.damaged(damage);
+
+    if (this.nexusLogic.nexus.isDead) {
+      this.nexusLogic.stopGameLoop();
+      // this.nexusLogic.endGame();
+    }
+
+    return nexusHp;
   }
 }
 
