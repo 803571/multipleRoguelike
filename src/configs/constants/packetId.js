@@ -56,6 +56,7 @@ export const PACKET_ID = {
   S_PartyLeave: 49,
   C_MatchStart: 50,
   S_NexusSpawn: 51,
+  S_PlayerKillCount: 52,
   C_GetNavPath: 99,
   S_GetNavPath: 100,
   S_Ping: 254,
