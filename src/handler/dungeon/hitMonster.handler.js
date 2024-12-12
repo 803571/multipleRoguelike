@@ -1,29 +1,36 @@
 import { PACKET_ID } from '../../configs/constants/packetId.js';
-import { getDungeonSession } from '../../sessions/dungeon.session.js';
-import createResponse from '../../utils/packet/createResponse.js';
-import handleError from '../../utils/error/errorHandler.js';
+import { getDungeonSession, getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
+import { getRedisUserById } from '../../sessions/redis/redis.user.js';
 import monsterKillNotification from '../monster/monsterKill.notification.js';
-import { findCharacterByUserId } from '../../db/model/characters.db.js';
+import Result from '../result.js';
+import updateMonsterHpNotification from '../monster/updateMonsterHp.notification.js';
+import logger from '../../utils/logger.js';
 
 // message C_HitMonster{
 //     int32 monsterId = 1;  // 플레이어 ID
-//     int32 damage = 2;    // 데미지
-//   }
-//   // 몬스터 공격 알림
-//   message S_HitMonster{
-//     int32 monsterId = 1;  // 플레이어 ID
+import monsterKillNotification from '../monster/monsterKill.notification.js';
 //     int32 damage = 2;    // 데미지
 //   }
 
-const hitMonsterHandler = async (socket, payload) => {
+const hitMonsterHandler = async ({ socket, payload }) => {
   try {
     const { monsterId, damage } = payload;
+    if (Number.isInteger(monsterId) == false || Number.isNaN(damage)) {
+      logger.warn(
+        `hitMonsterHandler. ${socket.id}에서 요청했으나 잘못된 규격으로 전송함. monsterId : ${monsterId}, damage : ${damage}`,
+      );
+      return;
+    }
+    const redisUser = await getRedisUserById(socket.id);
+    if (redisUser == null) {
+      logger.warn(`hitMonsterHandler. ${socket.id}를 Redis에서 찾을 수 없음`);
+      return;
+    }
 
-    const response = createResponse(PACKET_ID.S_HitMonster, { monsterId, damage });
+    const allUsers = getDungeonUsersUUID(redisUser.sessionId);
 
-    const redisUser = await findCharacterByUserId(socket.id);
     const dungeon = getDungeonSession(redisUser.sessionId);
-    const allUsers = dungeon.getAllUsers();
+    dungeon.damageMonster(socket.id, monsterId, damage);
 
     const monster = dungeon.monsterLogic.getMonsterById(monsterId);
 
@@ -31,26 +38,18 @@ const hitMonsterHandler = async (socket, payload) => {
 
     const currentHp = monster.hit(damage, targetYou);
 
+    await updateMonsterHpNotification(socket, { monsterId, currentHp }, allUsers);
+
     if (currentHp <= 0) {
-      monsterKillNotification(socket, {
+      await monsterKillNotification(socket, redisUser, {
         monsterId: monster.id,
         transform: monster.transform,
       });
     }
-
-    // 몬스터 체력 업데이트 노티피케이션
-    const updateHpResponse = createResponse(PACKET_ID.S_UpdateMonsterHp, {
-      monsterId,
-      hp: currentHp,
-    });
-
-    allUsers.forEach((value) => {
-      value.socket.write(response);
-      value.socket.write(updateHpResponse);
-    });
   } catch (err) {
-    handleError(socket, err);
+    logger.error(`hitMonsterHandler. ${err.message}`);
+    return;
   }
+  return new Result({ monsterId, damage }, PACKET_ID.S_HitMonster);
 };
-
 export default hitMonsterHandler;
