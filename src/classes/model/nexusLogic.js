@@ -1,6 +1,6 @@
 import Nexus from './nexus.class.js';
 import spawnNexusNotification from '../../handler/game/spawnNexus.notification.js';
-import endGameNotification from '../../handler/game/endGame.notification.js';
+// import endGameNotification from '../../handler/game/endGame.notification.js';
 import { removeDungeonSession } from '../../sessions/dungeon.session.js';
 
 class NexusLogic {
@@ -35,12 +35,12 @@ class NexusLogic {
     });
   }
 
-  endGame() {
-    removeDungeonSession(this.dungeonInstance);
-    this.dungeonInstance.getAllUsers().forEach((user) => {
-      endGameNotification(user.socket);
-    });
-  }
+  // endGame() {
+  //   removeDungeonSession(this.dungeonInstance);
+  //   this.dungeonInstance.getAllUsers().forEach((user) => {
+  //     endGameNotification(user.socket);
+  //   });
+  // }
 }
 
 export default NexusLogic;

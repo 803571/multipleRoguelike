@@ -44,7 +44,7 @@ const hitPlayerHandler = async (socket, payload) => {
 
       // 플레이어 처치 알림
       attacker.killCount = (attacker.killCount || 0) + 1; // 처치 수 증가
-      playerKillCountNotification(socket, attacker.id, attacker.killCount); // 처치 수 알림
+      await playerKillCountNotification(attacker.id, attacker.killCount); // 올바른 호출 방식
     }
 
     // updatePlayerHp 노티피케이션

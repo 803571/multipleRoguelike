@@ -5,16 +5,10 @@ import createNotificationPacket from '../../utils/notification/createNotificatio
 import handleError from '../../utils/error/errorHandler.js';
 
 const updateNexusHpNotification = async (socket, hp) => {
-  try {
-    const redisUser = await findCharacterByUserId(socket.id);
-    const dungeonUsersUUID = getDungeonUsersUUID(redisUser.sessionId);
-
-    const nexusHpPayload = { hp };
-
-    createNotificationPacket(PACKET_ID.S_UpdateNexusHp, nexusHpPayload, dungeonUsersUUID);
-  } catch (err) {
-    handleError(socket, err);
-  }
+  const redisUser = await findCharacterByUserId(socket.id);
+  const dungeonUsersUUID = getDungeonUsersUUID(redisUser.sessionId);
+  const nexusHpPayload = { hp };
+  createNotificationPacket(PACKET_ID.S_UpdateNexusHp, nexusHpPayload, dungeonUsersUUID);
 };
 
 export default updateNexusHpNotification;

@@ -56,6 +56,10 @@ message S_HitPlayer {
   int32 playerId = 1;  // 피격자 ID
   int32 damage = 2;    // 데미지
 }
+message S_PlayerKillCount {
+  int32 playerId = 1;
+  int32 playerKillCount = 2;
+}
 
 message C_HitMonster {
   int32 monsterId = 1;  // 몬스터 ID
