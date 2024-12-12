@@ -37,7 +37,6 @@ message S_AttackedNexus {
 }
 message S_NexusSpawn {
   int32 nexusId = 1; //확장성 & 넥서스 특정하기
-  int32 hp = 1;
   transformInfo transform = 2;
 }
 

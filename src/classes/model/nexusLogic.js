@@ -29,9 +29,9 @@ class NexusLogic {
   }
 
   spawnNexus(newPosition) {
-    const hp = this.nexus.nexusHp;
+    const nexusId = this.nexus.id;
     this.dungeonInstance.getAllUsers().forEach((user) => {
-      spawnNexusNotification(user.userInfo.socket, { hp, transform: newPosition });
+      spawnNexusNotification(user.userInfo.socket, { nexusId, transform: newPosition });
     });
   }
 
