@@ -1,9 +1,10 @@
 syntax = "proto3";
 message GameInfo {
-    int32 playerRank = 1;        // 플레이어 순위
-    int32 userKillCount = 2;     // 유저 처치 수
-    int32 monsterKillCount = 3;   // 몬스터 처치 수
-    int32 score = 4;              // 총 점수
+    int32 playerId = 1;          
+    int32 playerRank = 2;         // 플레이어 순위
+    int32 userKillCount = 3;      // 유저 처치 수
+    int32 monsterKillCount = 4;   // 몬스터 처치 수
+    int32 score = 5;              // 총 점수
 }
 
 message S_GameEnd {

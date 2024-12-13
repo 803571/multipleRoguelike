@@ -2,6 +2,7 @@ import { PACKET_ID } from '../../configs/constants/packetId.js';
 import { findCharacterByUserId } from '../../db/model/characters.db.js';
 import createNotificationPacket from '../../utils/notification/createNotification.js';
 import { getDungeonSession, getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
+import { POINTS_PLAYER_KILL, POINTS_MONSTER_KILL } from '../../configs/constants/game.js'; // 상수 가져오기
 
 const endGameNotification = async (playerId) => {
   const redisUser = await findCharacterByUserId(playerId);
@@ -16,7 +17,8 @@ const endGameNotification = async (playerId) => {
     playerId: player.id,
     userKillCount: player.userKillCount, // 유저 킬 카운트 추가
     monsterKillCount: player.monsterKillCount, // 몬스터 킬 카운트 추가
-    score: player.userKillCount * 5 + player.monsterKillCount * 1, // 점수 계산
+    score:
+      player.userKillCount * POINTS_PLAYER_KILL + player.monsterKillCount * POINTS_MONSTER_KILL, // 점수 계산
     rank: 0, // 초기화
   }));
 
@@ -43,6 +45,7 @@ const endGameNotification = async (playerId) => {
 
     const payload = {
       gameInfo: rankedPlayers.map((player) => ({
+        playerId: player.playerId,
         playerRank: player.rank,
         userKillCount: player.userKillCount,
         monsterKillCount: player.monsterKillCount,
