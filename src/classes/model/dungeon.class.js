@@ -218,7 +218,7 @@ class Dungeon {
 
     if (this.nexusLogic.nexus.isDead) {
       this.nexusLogic.stopGameLoop();
-      // this.nexusLogic.endGame();
+      this.nexusLogic.endGame();
     }
 
     return nexusHp;
