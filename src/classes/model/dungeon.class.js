@@ -7,6 +7,7 @@ import { PACKET_ID } from '../../configs/constants/packetId.js';
 import { enqueueSend } from '../../utils/socket/messageQueue.js';
 import { getGameAssets } from '../../init/loadAsset.js';
 import createNotificationPacket from '../../utils/notification/createNotification.js';
+import NexusLogic from './nexusLogic.js';
 
 class Dungeon {
   constructor(dungeonInfo) {
@@ -15,9 +16,7 @@ class Dungeon {
     this.users = new Map();
     this.usersUUID = [];
     this.monsterLogic = new MonsterLogic(this);
-
-    this.nexusCurrentHp = 100;
-    this.nexusMaxHp = 100;
+    this.nexusLogic = new NexusLogic(this);
   }
 
   async addDungeonUser(user) {
@@ -259,9 +258,15 @@ class Dungeon {
     return user.criticalDamageRate;
   }
 
-  nexusDamaged(damage) {
-    this.nexusCurrentHp -= damage;
-    return this.nexusCurrentHp;
+  nexusDamaged(damage, playerId) {
+    const nexusHp = this.nexusLogic.nexus.damaged(damage);
+
+    if (this.nexusLogic.nexus.isDead) {
+      this.nexusLogic.stopGameLoop();
+      this.nexusLogic.endGame(playerId); // 부신 플레이어 ID만 전달
+    }
+
+    return nexusHp;
   }
 }
 
