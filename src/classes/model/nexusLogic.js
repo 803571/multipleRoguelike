@@ -36,7 +36,7 @@ class NexusLogic {
   }
 
   endGame(playerId) {
-    removeDungeonSession(this.dungeonInstance);
+    // removeDungeonSession(this.dungeonInstance);
     endGameNotification(playerId); // 부신 플레이어 ID 전달
   }
 }
