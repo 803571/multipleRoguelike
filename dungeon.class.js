@@ -2,11 +2,6 @@ import { getStatsByUserId } from '../../sessions/redis/redis.user.js';
 import MonsterLogic from './monsterLogic.class.js';
 import logger from '../../utils/logger.js';
 import { removeDungeonSession } from '../../sessions/dungeon.session.js';
-import createResponse from '../../utils/packet/createResponse.js';
-import { PACKET_ID } from '../../configs/constants/packetId.js';
-import { enqueueSend } from '../../utils/socket/messageQueue.js';
-import { getGameAssets } from '../../init/loadAsset.js';
-import createNotificationPacket from '../../utils/notification/createNotification.js';
 import NexusLogic from './nexusLogic.js';
 
 class Dungeon {
@@ -32,49 +27,11 @@ class Dungeon {
     const dungeonUser = {
       user: user,
       statsInfo,
-      monsterKillCount: 0,
-      userKillCount: 0,
     };
 
     this.users.set(userId, dungeonUser);
 
     return user;
-  }
-
-  increaseMonsterKillCount(userId) {
-    const user = this.users.get(userId);
-    if (!user) {
-      logger.error(`해당 userId (${userId})를 가진 사용자가 던전에 없습니다.`);
-      return;
-    }
-    user.monsterKillCount += 1;
-    logger.info(
-      `플레이어 ${userId}의 몬스터 킬 수가 증가했습니다. 현재 몬스터 킬 수: ${user.monsterKillCount}`,
-    );
-
-    createNotificationPacket(
-      PACKET_ID.S_MonsterKillCount,
-      { playerId: userId, monsterKillCount: user.monsterKillCount },
-      this.getDungeonUsersUUID(),
-    );
-  }
-
-  increaseUserKillCount(userId) {
-    const user = this.users.get(userId);
-    if (!user) {
-      logger.error(`해당 userId (${userId})를 가진 사용자가 던전에 없습니다.`);
-      return;
-    }
-    user.userKillCount += 1;
-    logger.info(
-      `플레이어 ${userId}의 유저 킬 수가 증가했습니다. 현재 유저 킬 수: ${user.userKillCount}`,
-    );
-
-    createNotificationPacket(
-      PACKET_ID.S_PlayerKillCount,
-      { playerId: userId, playerKillCount: user.userKillCount },
-      this.getDungeonUsersUUID(),
-    );
   }
 
   removeDungeonUser(userId) {
@@ -111,29 +68,12 @@ class Dungeon {
     }
   }
 
-  isRemainedUser() {
-    if (this.users.size === 0) {
-      this.removeDungeonSession();
-      return true;
-    }
-    return false;
-  }
-
   removeDungeonSession() {
     removeDungeonSession(this.sessionId);
   }
 
   getDungeonUser(userId) {
-    return this.users.get(userId);
-  }
-
-  getDungeonUsersUUID() {
-    if (!this.users || this.users.size === 0) {
-      logger.info(`던전에 유저가 존재하지 않습니다. dungeonId: ${this.dungeonId}`);
-      return null;
-    }
-
-    return Array.from(this.users.values()).map((user) => user.user.socket.UUID);
+    return this.users.get(userId) || null;
   }
 
   // 인포만 매핑해서 받기
@@ -159,6 +99,10 @@ class Dungeon {
   setUserStats(userId) {
     const user = this.users.get(userId);
 
+    if (!user) {
+      throw new Error('유저가 존재하지 않습니다.');
+    }
+
     // 레벨 퍼당 스탯을 가져와서 @@@@@@@@@@@@@@ 밑에 스탯에 추가 해주면 됨.
 
     user.statsInfo = {
@@ -174,44 +118,17 @@ class Dungeon {
       exp: user.statsInfo.exp,
     };
 
-    return user.statsInfo;
+    return user;
   }
 
-  addExp(userId, getExp) {
-    const user = this.getDungeonUser(userId);
-
-    // 레벨당 필요 경험치 불러오기
-    let maxExp = user.statsInfo.maxExp;
-    if (maxExp === 0) {
-      maxExp = getGameAssets().expInfo.data.find(
-        (exp) => exp.level === user.statsInfo.level,
-      ).maxExp;
+  addUserExp(userId, exp) {
+    const user = this.users.get(userId);
+    if (!user) {
+      logger.info(user);
     }
-
-    user.statsInfo.exp += getExp;
-    logger.info(`플레이어 ${userId}의 경험치 get +${getExp} 현재경험치 ${user.statsInfo.exp}`);
-
-    const expResponse = createResponse(PACKET_ID.S_GetExp, {
-      playerId: userId,
-      expAmount: user.statInfo.exp,
-    });
-
-    enqueueSend(user.user.UUID, expResponse);
-
-    if (user.statsInfo.exp >= maxExp) {
-      user.statsInfo.exp -= maxExp;
-      this.userLevelUpNoti(userId);
-    }
-
+    user.statsInfo.exp += exp;
+    logger.info(`플레이어 ${userId}의 경험치 get +${exp} 현재경험치 ${user.statsInfo.exp}`);
     return user.statsInfo.exp;
-  }
-
-  userLevelUpNoti(userId) {
-    createNotificationPacket(
-      PACKET_ID.S_LevelUp,
-      { playerId: userId, statInfo: this.setUserStats(userId) },
-      this.getDungeonUsersUUID(),
-    );
   }
 
   getUserHp(userId) {
@@ -232,31 +149,10 @@ class Dungeon {
   damagedUser(userId, damage) {
     const user = this.users.get(userId);
 
-    // 방어 로직 있으면 여기다 추가
-    user.statsInfo.stats.curHp -= damage;
+    // 방어력 관련
+    user.currentHp -= damage;
 
-    createNotificationPacket(
-      PACKET_ID.S_HitPlayer,
-      { playerId: userId, damage },
-      this.getDungeonUsersUUID(),
-    );
-
-    return user.statsInfo.stats.curHp;
-  }
-
-  getAmountHpByKillUser(userId) {
-    const user = this.users.get(userId);
-    const userMaxHp = user.statsInfo.stats.maxHp;
-
-    const healAmount = Math.floor(userMaxHp * 0.5);
-
-    user.statsInfo.stats.curHp = Math.min(user.statsInfo.stats.curHp + healAmount, userMaxHp);
-
-    createNotificationPacket(
-      PACKET_ID.S_UpdatePlayerHp,
-      { playerId: userId, hp: user.statsInfo.stats.curHp },
-      this.getDungeonUsersUUID(),
-    );
+    return user.currentHp;
   }
 
   updatePlayerHp(userId, amount) {
