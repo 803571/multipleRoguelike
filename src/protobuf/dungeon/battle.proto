@@ -84,3 +84,11 @@ message S_GetExp {
   int32 playerId = 1;
   int32 expAmount = 2;
 }
+message S_NexusSpawn {
+  int32 nexusId = 1; //확장성 & 넥서스 특정하기
+  transformInfo transform = 2;
+}
+message S_PlayerKillCount {
+  int32 playerId = 1;
+  int32 playerKillCount = 2;
+}
