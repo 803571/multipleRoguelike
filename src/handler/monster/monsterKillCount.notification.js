@@ -3,27 +3,20 @@ import createNotificationPacket from '../../utils/notification/createNotificatio
 import { getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
 import { findCharacterByUserId } from '../../db/model/characters.db.js';
 
-/*
-message S_PlayerKillCount {
-    int32 playerId = 1;        // 플레이어 ID
-    int32 playerKillCount = 2; // 플레이어 처치 수
-}
-*/
-
-const playerKillCountNotification = async (socket, playerId) => {
+const monsterKillCountNotification = async (socket, playerId) => {
   const redisUser = await findCharacterByUserId(playerId);
   const dungeonUsersUUID = getDungeonUsersUUID(redisUser.sessionId);
 
-  // 유저 정보 가져오기
+  // 몬스터 처치 수 증가
   const attacker = await findCharacterByUserId(playerId);
-  attacker.userKillCount++; // 유저 킬 카운트 증가
+  attacker.monsterKillCount++;
 
   const payload = {
     playerId,
-    playerKillCount: attacker.userKillCount, // 플레이어 처치 수 포함
+    monsterKillCount: attacker.monsterKillCount,
   };
 
-  createNotificationPacket(PACKET_ID.S_PlayerKillCount, payload, dungeonUsersUUID);
+  createNotificationPacket(PACKET_ID.S_MonsterKillCount, payload, dungeonUsersUUID);
 };
 
-export default playerKillCountNotification;
+export default monsterKillCountNotification;
