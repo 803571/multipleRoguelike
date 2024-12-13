@@ -22,7 +22,7 @@ const attackedNexusHandler = async ({ socket, payload }) => {
     const dungeon = getDungeonSession(redisUser.sessionId);
     const dungeonUsersUUID = getDungeonUsersUUID(redisUser.sessionId);
 
-    const currentHp = dungeon.nexusDamaged(damage);
+    const currentHp = dungeon.nexusDamaged(damage, playerId);
 
     const nexusPayload = {
       playerId,

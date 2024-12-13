@@ -213,12 +213,12 @@ class Dungeon {
     return user.criticalDamageRate;
   }
 
-  nexusDamaged(damage) {
+  nexusDamaged(damage, playerId) {
     const nexusHp = this.nexusLogic.nexus.damaged(damage);
 
     if (this.nexusLogic.nexus.isDead) {
       this.nexusLogic.stopGameLoop();
-      this.nexusLogic.endGame();
+      this.nexusLogic.endGame(playerId); // 부신 플레이어 ID만 전달
     }
 
     return nexusHp;

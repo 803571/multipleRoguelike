@@ -1,24 +1,15 @@
 import { PACKET_ID } from '../../configs/constants/packetId.js';
-import createNotificationPacket from '../../utils/notification/createNotification.js';
-import { getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
 import { findCharacterByUserId } from '../../db/model/characters.db.js';
+import createNotificationPacket from '../../utils/notification/createNotification.js';
+import { getDungeonSession, getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
 
-/*
-message GameInfo {
-    int32 playerRank = 1;        // 플레이어 순위
-    int32 userKillCount = 2;     // 유저 처치 수
-    int32 monsterKillCount = 3;   // 몬스터 처치 수
-    int32 score = 4;              // 총 점수
-}
-/*
-message S_GameEnd {
-    repeated GameInfo gameInfo = 1; // 'repeated'로 수정
-}
-*/
+const endGameNotification = async (playerId) => {
+  const redisUser = await findCharacterByUserId(playerId);
+  const dungeon = getDungeonSession(redisUser.sessionId); // 해당 던전 세션 조회
+  const players = dungeon.getAllUsers(); // 현재 던전의 모든 플레이어 가져오기
 
-const endGameNotification = async (socket, players) => {
   // 넥서스를 부신 플레이어 찾기
-  const nexusDestroyer = players.find((player) => player.destroyedNexus);
+  const nexusDestroyer = players.find((player) => player.id === playerId);
 
   // 순위 매기기
   const rankedPlayers = players.map((player) => ({
