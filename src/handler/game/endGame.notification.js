@@ -2,29 +2,27 @@ import { PACKET_ID } from '../../configs/constants/packetId.js';
 import { findCharacterByUserId } from '../../db/model/characters.db.js';
 import createNotificationPacket from '../../utils/notification/createNotification.js';
 import { getDungeonSession, getDungeonUsersUUID } from '../../sessions/dungeon.session.js';
-import { POINTS_PLAYER_KILL, POINTS_MONSTER_KILL } from '../../configs/constants/game.js'; // 상수 가져오기
+import { POINTS_PLAYER_KILL, POINTS_MONSTER_KILL } from '../../configs/constants/game.js';
 
 const endGameNotification = async (playerId) => {
   const redisUser = await findCharacterByUserId(playerId);
-  const dungeon = getDungeonSession(redisUser.sessionId); // 해당 던전 세션 조회
-  const players = dungeon.getAllUsers(); // 현재 던전의 모든 플레이어 가져오기
-
-  // 넥서스를 부신 플레이어 찾기
-  const nexusDestroyer = players.find((player) => player.id === playerId);
+  const dungeon = getDungeonSession(redisUser.sessionId);
+  const players = dungeon.getAllUsers();
 
   // 순위 매기기
   const rankedPlayers = players.map((player) => ({
     playerId: player.id,
-    userKillCount: player.userKillCount, // 유저 킬 카운트 추가
-    monsterKillCount: player.monsterKillCount, // 몬스터 킬 카운트 추가
+    userKillCount: player.userKillCount,
+    monsterKillCount: player.monsterKillCount,
     score:
-      player.userKillCount * POINTS_PLAYER_KILL + player.monsterKillCount * POINTS_MONSTER_KILL, // 점수 계산
+      player.userKillCount * POINTS_PLAYER_KILL + player.monsterKillCount * POINTS_MONSTER_KILL,
     rank: 0, // 초기화
   }));
 
-  // 넥서스를 부신 플레이어를 1등으로 설정
+  // 넥서스를 파괴한 플레이어를 1등으로 설정
+  const nexusDestroyer = rankedPlayers.find((p) => p.playerId === playerId);
   if (nexusDestroyer) {
-    rankedPlayers.find((p) => p.playerId === nexusDestroyer.id).rank = 1;
+    nexusDestroyer.rank = 1;
   }
 
   // 나머지 플레이어의 순위 매기기
@@ -32,29 +30,27 @@ const endGameNotification = async (playerId) => {
     .filter((p) => p.rank === 0) // 1등이 아닌 플레이어들
     .sort((a, b) => b.score - a.score); // 점수 기준으로 내림차순 정렬
 
-  // 순위 부여
   let currentRank = 2; // 1등은 이미 부여됨
   for (const player of sortedPlayers) {
     player.rank = currentRank++;
   }
 
-  // 각 플레이어에게 개별적으로 알림 전송
-  for (const player of rankedPlayers) {
-    const redisUser = await findCharacterByUserId(player.playerId);
-    const dungeonUsersUUID = getDungeonUsersUUID(redisUser.sessionId);
+  // 최종적으로 rank에 따라 정렬
+  rankedPlayers.sort((a, b) => a.rank - b.rank);
 
-    const payload = {
-      gameInfo: rankedPlayers.map((player) => ({
-        playerId: player.playerId,
-        playerRank: player.rank,
-        userKillCount: player.userKillCount,
-        monsterKillCount: player.monsterKillCount,
-        score: player.score,
-      })),
-    };
+  // 게임 종료 알림이었지만 일단 순위표 생성 및 전송
+  const payload = {
+    gameInfo: rankedPlayers.map((player) => ({
+      playerId: player.playerId,
+      playerRank: player.rank,
+      userKillCount: player.userKillCount,
+      monsterKillCount: player.monsterKillCount,
+      score: player.score,
+    })),
+  };
 
-    createNotificationPacket(PACKET_ID.S_GameEnd, payload, dungeonUsersUUID);
-  }
+  const dungeonUsersUUID = getDungeonUsersUUID(redisUser.sessionId);
+  createNotificationPacket(PACKET_ID.S_GameEnd, payload, dungeonUsersUUID);
 };
 
 export default endGameNotification;
