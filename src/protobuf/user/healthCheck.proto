@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-message S_Ping{
-    int64 serverTime = 1;
-}
-
-message C_Pong{
-    int64 clientTime = 1;
-}
