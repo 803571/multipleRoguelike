@@ -15,7 +15,6 @@ const requiredEnv = {
   REDIS: ['HOST', 'PORT', 'PASSWORD'],
   SECURE: ['PEPPER', 'SALT'],
   LOGGER: ['STACK_TRACE'],
-  CLIENT: ['VERSION'],
   JWT: [
     'SECRET',
     'EXPIRES_IN',
@@ -27,6 +26,7 @@ const requiredEnv = {
     'ALGORITHM',
   ],
   PATH: ['HOST', 'PORT'],
+  GATEWAY: ['CHECK_INTERVAL'],
 };
 
 /**

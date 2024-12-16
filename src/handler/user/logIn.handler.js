@@ -9,6 +9,7 @@ import logger from '../../utils/logger.js';
 import createResponse from '../../utils/packet/createResponse.js';
 import { enqueueSend } from '../../utils/socket/messageQueue.js';
 import { getIsSignIn, setIsSignIn, setRedisUserUUID } from '../../sessions/redis/redis.user.js';
+import { setTokenByRedis } from '../../sessions/redis/redis.account.js';
 
 const { PACKET_ID, JWT_SECRET, JWT_EXPIRES_IN, JWT_ALGORITHM, JWT_ISSUER, JWT_AUDIENCE } = configs;
 
@@ -58,7 +59,7 @@ const logInHandler = async ({ socket, payload }) => {
           });
           token = `Bearer ${token}`;
           await setIsSignIn(socket.id, true);
-          addUserSession(socket);
+          await setTokenByRedis(account, token);
         }
       }
     }
@@ -70,12 +71,6 @@ const logInHandler = async ({ socket, payload }) => {
   }
   const loginBuffer = createResponse(PACKET_ID.S_Login, { success, message, token });
   enqueueSend(socket.UUID, loginBuffer);
-  if (success) {
-    const character = await findCharacterByUserId(socket.id);
-    if (character) {
-      await enterLogic(socket, character);
-    }
-  }
 };
 
 export default logInHandler;

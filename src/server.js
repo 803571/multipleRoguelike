@@ -2,13 +2,11 @@ import net from 'net';
 import { createInterface } from 'readline';
 import initServer from './init/index.js';
 import onConnection from './events/onConnection.js';
-import configs, { addConfig } from './configs/configs.js';
+import configs from './configs/configs.js';
 import logger from './utils/logger.js';
-import { getRedis } from './utils/redis/redisManager.js';
 import AsyncExitHook from 'async-exit-hook';
-import { registServerAndGetIndex, unregistServer } from './sessions/redis/redis.server.js';
 
-const { SERVER_BIND, SERVER_PORT, ServerUUID } = configs;
+const { SERVER_BIND, SERVER_PORT } = configs;
 
 const clients = [];
 const server = net.createServer((socket) => {
@@ -21,11 +19,7 @@ initServer()
   .then(() => {
     server.listen(SERVER_PORT, SERVER_BIND, async () => {
       const bindInfo = server.address();
-      const serverIndex = await registServerAndGetIndex();
-      addConfig('ServerIndex', serverIndex);
-      logger.info(
-        `Server[${serverIndex}] ${ServerUUID} is on ${bindInfo.address}:${bindInfo.port}`,
-      );
+      logger.info(`API-Gateway is on ${bindInfo.address}:${bindInfo.port}`);
     });
   })
   .catch((err) => {
@@ -49,31 +43,11 @@ const shutDownServer = async () => {
         resolve();
       });
     });
-    await unregistServer();
-    await deleteKeysByPattern();
   } catch (error) {
     logger.error(error);
   } finally {
     logger.info('서버 종료 완료');
     process.exit(0);
-  }
-};
-
-const deleteKeysByPattern = async () => {
-  const redis = await getRedis();
-  let cursor = '0';
-  const keysToDelete = [];
-  const pattern = `${ServerUUID}:*`;
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
-    cursor = nextCursor;
-    if (keys.length > 0) {
-      keysToDelete.push(...keys);
-    }
-  } while (cursor !== '0');
-
-  if (keysToDelete.length > 0) {
-    await redis.unlink(...keysToDelete);
   }
 };
 

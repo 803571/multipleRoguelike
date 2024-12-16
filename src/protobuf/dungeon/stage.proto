@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-import "../dungeon/monster.proto";
-
-message DungeonInfo {
-    int32 dungeonCode = 1;    // 던전 코드
-    string dungeonName = 2;
-}
