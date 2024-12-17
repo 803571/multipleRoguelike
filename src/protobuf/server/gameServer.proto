@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+
+message S_GameServerInfo{
+    repeated GameServer allServer = 1;
+    message GameServer{
+        string name = 1; //서버 이름
+        int32 maxCapacity = 2; //최대 수용 인원
+        int32 currentUserCount = 3; //현 수용 중 인원
+        bool isAlive =4; //서버가 살아있는지
+        int32 port = 5; //서버 접속 포트
+    }
+}

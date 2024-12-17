@@ -1,29 +1,17 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { findUserByAccount } from '../../db/model/user.db.js';
-import { findCharacterByUserId } from '../../db/model/characters.db.js';
-import { addUserSession } from '../../sessions/user.session.js';
-import enterLogic from '../../utils/etc/enter.logic.js';
 import configs from '../../configs/configs.js';
 import logger from '../../utils/logger.js';
 import createResponse from '../../utils/packet/createResponse.js';
 import { enqueueSend } from '../../utils/socket/messageQueue.js';
-import { getIsSignIn, setIsSignIn, setRedisUserUUID } from '../../sessions/redis/redis.user.js';
+import { getIsSignIn, setIsSignIn } from '../../sessions/redis/redis.user.js';
 import { setTokenByRedis } from '../../sessions/redis/redis.account.js';
+import userSessions from '../../sessions/sessions.js';
+import { createGameServerInfoPacket } from '../../sessions/redis/redis.health.js';
 
 const { PACKET_ID, JWT_SECRET, JWT_EXPIRES_IN, JWT_ALGORITHM, JWT_ISSUER, JWT_AUDIENCE } = configs;
 
-function isTokenValid(token) {
-  try {
-    jwt.verify(token, JWT_SECRET);
-    return true; // 토큰이 유효하고 만료되지 않음
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return false; // 토큰이 만료됨
-    }
-    return false; // 토큰이 유효하지 않음
-  }
-}
 const logInHandler = async (socket, payload) => {
   const { account, password } = payload;
   let success = true;
@@ -51,6 +39,7 @@ const logInHandler = async (socket, payload) => {
           // 로그인 검증 통과 - socket.id 할당
           socket.id = Number(existUser.id);
           socket.account = account;
+          userSessions[socket.id] = socket;
           message = '로그인에 성공하였습니다.';
           token = jwt.sign({ id: existUser.id, account }, JWT_SECRET, {
             expiresIn: JWT_EXPIRES_IN,
@@ -58,7 +47,6 @@ const logInHandler = async (socket, payload) => {
             issuer: JWT_ISSUER,
             audience: JWT_AUDIENCE,
           });
-          token = `Bearer ${token}`;
           await setIsSignIn(socket.id, true);
           await setTokenByRedis(account, token);
         }
@@ -72,6 +60,7 @@ const logInHandler = async (socket, payload) => {
   }
   const loginBuffer = createResponse(PACKET_ID.S_Login, { success, message, token });
   enqueueSend(socket.UUID, loginBuffer);
+  enqueueSend(socket.UUID, createGameServerInfoPacket());
 };
 
 export default logInHandler;

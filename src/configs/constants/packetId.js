@@ -62,6 +62,7 @@ export const PACKET_ID = {
   S_GetNavPath: 100,
   C_Logout: 101,
   S_Logout: 102,
+  S_GameServerInfo: 253,
   S_Ping: 254,
   C_Pong: 255,
 };

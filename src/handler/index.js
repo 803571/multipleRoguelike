@@ -1,9 +1,9 @@
 import { PACKET_ID } from '../configs/constants/packetId.js';
-import CustomError from '../utils/error/customError.js';
-import ErrorCodes from '../utils/error/errorCodes.js';
+
 // user
 import registerHandler from './user/register.handler.js';
 import logInHandler from './user/logIn.handler.js';
+import logger from '../utils/logger.js';
 
 const handlers = {
   // user
@@ -22,10 +22,8 @@ const handlers = {
 
 export const getHandlerByPacketId = (packetId) => {
   if (!handlers[packetId]) {
-    throw new CustomError(
-      ErrorCodes.UNKNOWN_HANDLER_ID,
-      `핸들러를 찾을 수 없습니다: ID ${packetId}`,
-    );
+    logger.error(`핸들러를 찾을 수 없습니다: ID ${packetId}`);
+    return null;
   }
 
   return handlers[packetId].handler;
@@ -33,10 +31,8 @@ export const getHandlerByPacketId = (packetId) => {
 
 export const getProtoTypeNameByPacketType = (packetType) => {
   if (!handlers[packetType]) {
-    throw new CustomError(
-      ErrorCodes.UNKNOWN_HANDLER_ID,
-      `핸들러를 찾을 수 없습니다: ID ${packetType}`,
-    );
+    logger.error(`핸들러를 찾을 수 없습니다: ID ${packetType}`);
+    return null;
   }
 
   return handlers[packetType].protoType;

@@ -1,3 +1,3 @@
-const userSessions = new Map();
+const userSessions = {};
 
-export { userSessions };
+export default userSessions;
