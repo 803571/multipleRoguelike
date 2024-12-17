@@ -1,0 +1,27 @@
+syntax = "proto3";
+message C_Register {
+    string account = 1;  // 아이디
+    string password = 2;  // 비밀번호
+}
+message S_Register {
+    bool success = 1;     // 성공 여부
+    string message = 2;   // 메시지
+}
+message C_Login {
+    string account = 1;  // 아이디
+    string password = 2;  // 비밀번호
+}
+message S_Login {
+    bool success = 1;     // 성공 여부
+    string message = 2;   // 메시지
+    string token = 3;     // 토큰
+}
+
+message C_Logout{
+    string token = 1; // 로그아웃을 위한 토큰
+}
+
+message S_Logout{
+    bool success = 1;
+    string message  = 2;
+}

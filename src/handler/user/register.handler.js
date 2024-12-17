@@ -5,7 +5,7 @@ import logger from '../../utils/logger.js';
 import bcrypt from 'bcryptjs';
 import Result from '../result.js';
 
-const registerHandler = async ({ socket, payload }) => {
+const registerHandler = async (socket, payload) => {
   const { account, password } = payload;
 
   const isNotValidate = await validateRegister({ account, password });

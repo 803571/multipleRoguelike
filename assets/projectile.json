@@ -1,8 +1,0 @@
-{
-    "name": "projectile",
-    "data":[
-      { "projectileId":100, "projectileSpeed":11.1 },
-      { "projectileId":101, "projectileSpeed":12.2 },
-      { "projectileId":102, "projectileSpeed":13.3 }
-    ]
-  }

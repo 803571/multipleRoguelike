@@ -13,6 +13,9 @@ const handlers = {
   [PACKET_ID.C_Login]: {
     handler: logInHandler,
   },
+  [PACKET_ID.C_Logout]: {
+    handler: logInHandler,
+  },
 
   // 다른 핸들러들 추가
 };

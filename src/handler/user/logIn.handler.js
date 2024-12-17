@@ -24,7 +24,7 @@ function isTokenValid(token) {
     return false; // 토큰이 유효하지 않음
   }
 }
-const logInHandler = async ({ socket, payload }) => {
+const logInHandler = async (socket, payload) => {
   const { account, password } = payload;
   let success = true;
   let message = undefined;
@@ -50,8 +50,9 @@ const logInHandler = async ({ socket, payload }) => {
         } else {
           // 로그인 검증 통과 - socket.id 할당
           socket.id = Number(existUser.id);
+          socket.account = account;
           message = '로그인에 성공하였습니다.';
-          token = jwt.sign({ id: existUser.id }, JWT_SECRET, {
+          token = jwt.sign({ id: existUser.id, account }, JWT_SECRET, {
             expiresIn: JWT_EXPIRES_IN,
             algorithm: JWT_ALGORITHM,
             issuer: JWT_ISSUER,
