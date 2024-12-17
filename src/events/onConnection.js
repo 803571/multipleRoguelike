@@ -4,6 +4,7 @@ import onError from './onError.js';
 import logger from '../utils/logger.js';
 import { v4 as uuidV4 } from 'uuid';
 import { addUserQueue } from '../utils/socket/messageQueue.js';
+import onClose from './onClose.js';
 
 const onConnection = (socket) => {
   socket.UUID = uuidV4();
@@ -16,6 +17,7 @@ const onConnection = (socket) => {
   socket.on('data', onData(socket));
   socket.on('end', onEnd(socket));
   socket.on('error', onError(socket));
+  socket.on('close', onClose(socket));
 };
 
 export default onConnection;

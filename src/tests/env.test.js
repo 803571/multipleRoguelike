@@ -1,6 +1,6 @@
 const testEnv = {
-  userName: 'test1234',
-  password: 'test1234',
+  userName: 'bbbb1111',
+  password: 'bbbb1111',
   url: 'localhost',
   port: 25565,
 };

@@ -6,7 +6,7 @@ import logger from '../../utils/logger.js';
 import createResponse from '../../utils/packet/createResponse.js';
 import { enqueueSend } from '../../utils/socket/messageQueue.js';
 import { getIsSignIn, setIsSignIn } from '../../sessions/redis/redis.user.js';
-import { setTokenByRedis } from '../../sessions/redis/redis.account.js';
+import { pubDuplicatedSignIn, setTokenByRedis } from '../../sessions/redis/redis.account.js';
 import userSessions from '../../sessions/sessions.js';
 import { createGameServerInfoPacket } from '../../sessions/redis/redis.health.js';
 
@@ -32,24 +32,24 @@ const logInHandler = async (socket, payload) => {
         success = false;
         message = '비밀번호가 일치하지 않습니다.';
       } else {
-        if (await getIsSignIn(existUser.id)) {
-          success = false;
-          message = '이미 로그인된 계정입니다.';
-        } else {
-          // 로그인 검증 통과 - socket.id 할당
-          socket.id = Number(existUser.id);
-          socket.account = account;
-          userSessions[socket.id] = socket;
-          message = '로그인에 성공하였습니다.';
-          token = jwt.sign({ id: existUser.id, account }, JWT_SECRET, {
-            expiresIn: JWT_EXPIRES_IN,
-            algorithm: JWT_ALGORITHM,
-            issuer: JWT_ISSUER,
-            audience: JWT_AUDIENCE,
-          });
-          await setIsSignIn(socket.id, true);
-          await setTokenByRedis(account, token);
+        socket.id = Number(existUser.id);
+        const isSignedIn = await getIsSignIn(socket.id);
+        console.log(`isSignedIn [${socket.id}] => ${isSignedIn}`);
+        if (isSignedIn) {
+          await pubDuplicatedSignIn(socket.id, socket.UUID);
         }
+        // 로그인 검증 통과 - socket.id 할당
+        socket.account = account;
+        userSessions[socket.id] = socket;
+        message = '로그인에 성공하였습니다.';
+        token = jwt.sign({ id: existUser.id, account }, JWT_SECRET, {
+          expiresIn: JWT_EXPIRES_IN,
+          algorithm: JWT_ALGORITHM,
+          issuer: JWT_ISSUER,
+          audience: JWT_AUDIENCE,
+        });
+        await setIsSignIn(socket.id, true);
+        await setTokenByRedis(account, token);
       }
     }
   } catch (error) {

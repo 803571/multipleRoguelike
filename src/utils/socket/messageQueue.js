@@ -29,10 +29,11 @@ export const addUserQueue = (socket) => {
 export const removeUserQueue = (socket) => {
   const uuid = socket.UUID;
   if (queueBySocket[uuid]) {
-    delete queueBySocket[uuid];
+    logger.debug(`removeUserQueue. ${uuid} is removed`);
   } else {
     logger.warn(`removeUserQueue. ${uuid || 'Undefined'} is unknown socket`);
   }
+  delete queueBySocket[uuid];
 };
 
 const getUserQueue = (socketUUID) => {
@@ -41,6 +42,16 @@ const getUserQueue = (socketUUID) => {
     logger.error(`Unknown user queue. is Empty : ${socketUUID}`);
   }
   return userQueues;
+};
+
+export const findAllUserQueueByUserId = (userId) => {
+  const result = [];
+  for (const key in queueBySocket) {
+    if (queueBySocket[key].socket.id == userId) {
+      result.push(queueBySocket[key]);
+    }
+  }
+  return result;
 };
 
 export const enqueueSend = (socketUUID, buffer) => {
