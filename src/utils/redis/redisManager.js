@@ -20,7 +20,7 @@ export const connect = async () => {
         host: REDIS_HOST,
         port: REDIS_PORT,
         password: REDIS_PASSWORD,
-        db: 3,
+        db: 2,
       });
 
       redis.on('error', (err) => {
@@ -42,7 +42,7 @@ export const connect = async () => {
         host: REDIS_HOST,
         port: REDIS_PORT,
         password: REDIS_PASSWORD,
-        db: 3,
+        db: 2,
       });
 
       subscriberRedis.on('error', (err) => {

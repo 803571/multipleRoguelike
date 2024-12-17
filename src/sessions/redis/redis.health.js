@@ -3,6 +3,7 @@ import { getSubscriberRedis, connect, getRedis } from '../../utils/redis/redisMa
 import { enqueueSend } from '../../utils/socket/messageQueue.js';
 import userSessions from '../sessions.js';
 import configs from '../../configs/configs.js';
+import logger from '../../utils/logger.js';
 
 const { PACKET_ID } = configs;
 const HEALTH_REPORT_CHANEL = 'GAME_SERVER_HEALTH_REPORT_CHANNEL';
@@ -17,7 +18,7 @@ export const startHealthCheck = async () => {
 
   subRedis.on('pmessage', (pattern, channel, message) => {
     if (pattern == SUB_PATTERN) {
-      receiveServerHealth(channel.split(':')[1], message);
+      receiveServerHealth(message);
     }
   });
 
@@ -29,30 +30,36 @@ export const startHealthCheck = async () => {
   }, 5000);
 };
 
-const receiveServerHealth = (serverUUID, message) => {
-  // serverInfo = {serverName:'', maxCapacity:0, currentUserCount:0}
+const receiveServerHealth = (message) => {
   const serverInfo = JSON.parse(message);
-  allServerInfo[serverUUID] = { ...serverInfo, lastUpdate: Date.now() };
-  isChangedServerInfo = true;
+  if (serverInfo.port != undefined) {
+    allServerInfo[serverInfo.port] = { ...serverInfo, lastUpdate: Date.now() };
+    isChangedServerInfo = true;
+  } else {
+    logger.error(`somethings wrong received server health info : ${message}`);
+  }
 };
 
 export const notifyGameServerInfo = () => {
-  const buffer = createGameServerInfoPacket();
-  for (const userId in userSessions) {
-    const socket = userSessions[userId];
-    enqueueSend(socket.UUID, buffer);
+  if (Object.keys(userSessions).length > 0) {
+    const buffer = createGameServerInfoPacket();
+    for (const userId in userSessions) {
+      const socket = userSessions[userId];
+      enqueueSend(socket.UUID, buffer);
+    }
   }
 };
 
 export const createGameServerInfoPacket = () => {
   const payload = [];
   const now = Date.now();
-  for (const serverUUID in allServerInfo) {
-    const serverInfo = allServerInfo[serverUUID];
+  for (const key in allServerInfo) {
+    const serverInfo = allServerInfo[key];
     payload.push({
       name: serverInfo.serverName,
       maxCapacity: serverInfo.maxCapacity,
-      currentUserCount: serverInfo.currentUserCOunt,
+      currentUserCount: serverInfo.currentUserCount,
+      port: serverInfo.port,
       isAlive: now - serverInfo.lastUpdate < 10000, //10초 이상 메세지가 없었으면 서버가 사망한것으로 판단
     });
   }
