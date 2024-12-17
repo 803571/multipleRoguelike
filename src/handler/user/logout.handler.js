@@ -1,4 +1,4 @@
-import { getAccountByRedis } from '../../sessions/redis/redis.account.js';
+import { getAccountByRedis, setTokenByRedis } from '../../sessions/redis/redis.account.js';
 import { setIsSignIn } from '../../sessions/redis/redis.user.js';
 import configs from '../../configs/configs.js';
 import createResponse from '../../utils/packet/createResponse.js';
@@ -49,6 +49,7 @@ const logoutHandler = async (socket, payload) => {
   }
 
   await setIsSignIn(socket.id, false);
+  await setTokenByRedis(socket.account, '');
   result.payload.message = '로그아웃에 성공하였습니다.';
   return result;
 };
