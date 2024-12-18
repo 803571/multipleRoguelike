@@ -1,8 +1,6 @@
 // 중앙 집중식 관리
 import dotenv from 'dotenv';
-delete process.env.REDIS_PORT;
-delete process.env.SERVER_PORT;
-dotenv.config();
+dotenv.config({ path: process.env.ENV_FILE || '.env' });
 
 /**
  * 필수 환경 변수 목록을 정의하는 객체.
